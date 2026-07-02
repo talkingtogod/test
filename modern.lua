@@ -137,6 +137,7 @@ function ModernUI:CreateWindow(cfg)
     self.Keybind = cfg.Keybind or Enum.KeyCode.LeftControl
     self.ToggleKey = cfg.ToggleKey or "RightShift"
 
+    self.NavPosition = cfg.NavPosition or "top"
     self.Tabs = {}
     self.ActiveTab = nil
     self.Components = {}
@@ -269,35 +270,69 @@ function ModernUI:CreateWindow(cfg)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
 
-    -- Tabs
-    local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1, -12, 0, 32)
-    tabBar.Position = UDim2.new(0, 6, 0, 44)
-    tabBar.BackgroundColor3 = self.Theme.Surface
-    tabBar.BorderSizePixel = 0
-    tabBar.Parent = main
-    addCorner(tabBar, 8)
-
-    local tabList = Instance.new("Frame")
-    tabList.Size = UDim2.new(1, -4, 1, -4)
-    tabList.Position = UDim2.new(0, 2, 0, 2)
-    tabList.BackgroundTransparency = 1
-    tabList.Parent = tabBar
-
-    self.TabBar = tabBar
-    self.TabList = tabList
-    self.TabContainer = main
-
     self.TabButtons = {}
 
-    -- Content area
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -12, 1, -82)
-    content.Position = UDim2.new(0, 6, 0, 78)
-    content.BackgroundTransparency = 1
-    content.ClipsDescendants = true
-    content.Parent = main
-    self.Content = content
+    if self.NavPosition == "side" then
+        -- Sidebar navigation (icons)
+        local sidebar = Instance.new("Frame")
+        sidebar.Size = UDim2.new(0, 50, 1, -44)
+        sidebar.Position = UDim2.new(0, 6, 0, 42)
+        sidebar.BackgroundColor3 = self.Theme.Surface
+        sidebar.BorderSizePixel = 0
+        sidebar.Parent = main
+        addCorner(sidebar, 8)
+
+        local sidebarList = Instance.new("Frame")
+        sidebarList.Size = UDim2.new(1, -4, 1, -4)
+        sidebarList.Position = UDim2.new(0, 2, 0, 2)
+        sidebarList.BackgroundTransparency = 1
+        sidebarList.Parent = sidebar
+
+        local sidebarLayout = Instance.new("UIListLayout")
+        sidebarLayout.Padding = UDim.new(0, 2)
+        sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        sidebarLayout.Parent = sidebarList
+
+        self.Sidebar = sidebar
+        self.SidebarList = sidebarList
+
+        -- Content area (right of sidebar)
+        local content = Instance.new("Frame")
+        content.Size = UDim2.new(1, -64, 1, -46)
+        content.Position = UDim2.new(0, 58, 0, 42)
+        content.BackgroundTransparency = 1
+        content.ClipsDescendants = true
+        content.Parent = main
+        self.Content = content
+    else
+        -- Top tab bar (text)
+        local tabBar = Instance.new("Frame")
+        tabBar.Size = UDim2.new(1, -12, 0, 32)
+        tabBar.Position = UDim2.new(0, 6, 0, 44)
+        tabBar.BackgroundColor3 = self.Theme.Surface
+        tabBar.BorderSizePixel = 0
+        tabBar.Parent = main
+        addCorner(tabBar, 8)
+
+        local tabList = Instance.new("Frame")
+        tabList.Size = UDim2.new(1, -4, 1, -4)
+        tabList.Position = UDim2.new(0, 2, 0, 2)
+        tabList.BackgroundTransparency = 1
+        tabList.Parent = tabBar
+
+        self.TabBar = tabBar
+        self.TabList = tabList
+
+        -- Content area (below tab bar)
+        local content = Instance.new("Frame")
+        content.Size = UDim2.new(1, -12, 1, -82)
+        content.Position = UDim2.new(0, 6, 0, 78)
+        content.BackgroundTransparency = 1
+        content.ClipsDescendants = true
+        content.Parent = main
+        self.Content = content
+    end
 
     self.Destroy = function()
         inputCon:Disconnect()
@@ -310,37 +345,113 @@ end
 --------------------------------------------------------------------
 -- Tab
 --------------------------------------------------------------------
-function ModernUI:CreateTab(name)
+function ModernUI:CreateTab(name, icon)
+    icon = icon or ""
     local tabObj = {}
     tabObj.Name = name
     tabObj.Elements = {}
     tabObj.ScrollingFrames = {}
 
-    -- Tab button
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, -4)
-    btn.Position = UDim2.new(0, 2 + (#self.TabButtons) * 102, 0, 2)
-    btn.BackgroundColor3 = self.Theme.Surface
-    btn.Text = name
-    btn.TextColor3 = self.Theme.TextMuted
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    btn.AutoButtonColor = false
-    btn.BorderSizePixel = 0
-    btn.Parent = self.TabList
-    addCorner(btn, 6)
+    if self.NavPosition == "side" then
+        -- Sidebar icon button
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 40, 0, 40)
+        btn.BackgroundColor3 = self.Theme.Surface
+        btn.Text = icon ~= "" and icon or string.sub(name, 1, 1):upper()
+        btn.TextColor3 = self.Theme.TextMuted
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 18
+        btn.AutoButtonColor = false
+        btn.BorderSizePixel = 0
+        btn.Parent = self.SidebarList
+        addCorner(btn, 8)
 
-    local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0.6, 0, 0, 3)
-    indicator.Position = UDim2.new(0.2, 0, 1, -1)
-    indicator.BackgroundColor3 = self.Theme.Accent
-    indicator.BorderSizePixel = 0
-    indicator.Visible = false
-    indicator.Parent = btn
-    addCorner(indicator, 2)
+        -- Tooltip label
+        local tooltip = Instance.new("TextLabel")
+        tooltip.Size = UDim2.new(0, 0, 0, 20)
+        tooltip.Position = UDim2.new(1, 6, 0.5, -10)
+        tooltip.BackgroundColor3 = self.Theme.Panel
+        tooltip.Text = name
+        tooltip.TextColor3 = self.Theme.TextPri
+        tooltip.Font = Enum.Font.GothamSemibold
+        tooltip.TextSize = 11
+        tooltip.Visible = false
+        tooltip.ZIndex = 50
+        tooltip.Parent = btn
+        addCorner(tooltip, 4)
+        addStroke(tooltip, self.Theme.Border, 0.5, 0.3)
 
-    tabObj.Button = btn
-    tabObj.Indicator = indicator
+        local indicator = Instance.new("Frame")
+        indicator.Size = UDim2.new(0, 3, 0.5, 0)
+        indicator.Position = UDim2.new(0, 0, 0.25, 0)
+        indicator.BackgroundColor3 = self.Theme.Accent
+        indicator.BorderSizePixel = 0
+        indicator.Visible = false
+        indicator.Parent = btn
+        addCorner(indicator, 2)
+
+        tabObj.Tooltip = tooltip
+        tabObj.Button = btn
+        tabObj.Indicator = indicator
+
+        btn.MouseEnter:Connect(function()
+            if self.ActiveTab ~= tabObj then
+                tween(btn, {BackgroundColor3 = self.Theme.Card})
+            end
+            tooltip.Size = UDim2.new(0, 0, 0, 20)
+            tooltip.Visible = true
+            tween(tooltip, {Size = UDim2.new(0, #name * 7 + 12, 0, 20)})
+        end)
+        btn.MouseLeave:Connect(function()
+            if self.ActiveTab ~= tabObj then
+                tween(btn, {BackgroundColor3 = self.Theme.Surface})
+            end
+            tooltip.Visible = false
+        end)
+        btn.MouseButton1Click:Connect(function()
+            self:SelectTab(tabObj)
+        end)
+    else
+        -- Top text button
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 100, 1, -4)
+        btn.Position = UDim2.new(0, 2 + (#self.TabButtons) * 102, 0, 2)
+        btn.BackgroundColor3 = self.Theme.Surface
+        btn.Text = icon ~= "" and icon .. " " .. name or name
+        btn.TextColor3 = self.Theme.TextMuted
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 11
+        btn.AutoButtonColor = false
+        btn.BorderSizePixel = 0
+        btn.Parent = self.TabList
+        addCorner(btn, 6)
+
+        local indicator = Instance.new("Frame")
+        indicator.Size = UDim2.new(0.6, 0, 0, 3)
+        indicator.Position = UDim2.new(0.2, 0, 1, -1)
+        indicator.BackgroundColor3 = self.Theme.Accent
+        indicator.BorderSizePixel = 0
+        indicator.Visible = false
+        indicator.Parent = btn
+        addCorner(indicator, 2)
+
+        tabObj.Button = btn
+        tabObj.Indicator = indicator
+
+        btn.MouseEnter:Connect(function()
+            if self.ActiveTab ~= tabObj then
+                tween(btn, {BackgroundColor3 = self.Theme.Card})
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if self.ActiveTab ~= tabObj then
+                tween(btn, {BackgroundColor3 = self.Theme.Surface})
+            end
+        end)
+        btn.MouseButton1Click:Connect(function()
+            self:SelectTab(tabObj)
+        end)
+    end
 
     -- Tab content frame
     local tabContent = Instance.new("Frame")
@@ -365,25 +476,9 @@ function ModernUI:CreateTab(name)
 
     tabObj.Scroll = sf
 
-    -- Button hover
-    btn.MouseEnter:Connect(function()
-        if self.ActiveTab ~= tabObj then
-            tween(btn, {BackgroundColor3 = self.Theme.Card})
-        end
-    end)
-    btn.MouseLeave:Connect(function()
-        if self.ActiveTab ~= tabObj then
-            tween(btn, {BackgroundColor3 = self.Theme.Surface})
-        end
-    end)
-    btn.MouseButton1Click:Connect(function()
-        self:SelectTab(tabObj)
-    end)
-
     table.insert(self.Tabs, tabObj)
     self.TabButtons[name] = btn
 
-    -- Select first tab by default
     if #self.Tabs == 1 then
         self:SelectTab(tabObj)
     end
@@ -399,7 +494,11 @@ function ModernUI:SelectTab(tab)
     end
     self.ActiveTab = tab
     tab.Content.Visible = true
-    tween(tab.Button, {BackgroundColor3 = self.Theme.AccentDim, TextColor3 = Color3.fromRGB(255, 255, 255)})
+    if self.NavPosition == "side" then
+        tween(tab.Button, {BackgroundColor3 = self.Theme.AccentDim, TextColor3 = self.Theme.AccentLight})
+    else
+        tween(tab.Button, {BackgroundColor3 = self.Theme.AccentDim, TextColor3 = Color3.fromRGB(255, 255, 255)})
+    end
     tab.Indicator.Visible = true
 end
 
@@ -673,18 +772,17 @@ function ModernUI:CreateDropdown(tab, text, options, default, callback)
 
     local dropdownHeight = math.min(#options, 5) * 28 + 4
     local dropdownList = Instance.new("Frame")
-    dropdownList.Size = UDim2.new(1, 0, 0, dropdownHeight)
-    dropdownList.Position = UDim2.new(0, 0, 1, 4)
+    dropdownList.Size = UDim2.new(0, 0, 0, dropdownHeight)
     dropdownList.BackgroundColor3 = self.Theme.Panel
     dropdownList.BorderSizePixel = 0
     dropdownList.Visible = false
-    dropdownList.ZIndex = 10
-    dropdownList.Parent = frame
+    dropdownList.ZIndex = 100
+    dropdownList.Parent = self.GUI
     addCorner(dropdownList, 8)
     addStroke(dropdownList, self.Theme.Border, 0.5, 0.5)
 
     local dropdownScroll = createScrollingFrame(dropdownList, UDim2.new(1, -4, 1, -4), UDim2.new(0, 2, 0, 2))
-    dropdownScroll.ZIndex = 10
+    dropdownScroll.ZIndex = 100
     dropdownScroll.ScrollBarThickness = 3
 
     local listLayout = Instance.new("UIListLayout")
@@ -701,7 +799,7 @@ function ModernUI:CreateDropdown(tab, text, options, default, callback)
         optBtn.TextSize = 11
         optBtn.AutoButtonColor = false
         optBtn.BorderSizePixel = 0
-        optBtn.ZIndex = 11
+        optBtn.ZIndex = 101
         optBtn.Parent = dropdownScroll
         addCorner(optBtn, 4)
 
@@ -731,21 +829,24 @@ function ModernUI:CreateDropdown(tab, text, options, default, callback)
         open = not open
         if open then
             local absPos = frame.AbsolutePosition
+            local absSize = frame.AbsoluteSize
             local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(800, 600)
-            local spaceBelow = viewport.Y - (absPos.Y + frame.AbsoluteSize.Y)
+            local spaceBelow = viewport.Y - (absPos.Y + absSize.Y)
             local spaceAbove = absPos.Y
+            local yPos
             if spaceBelow < dropdownHeight and spaceAbove > dropdownHeight then
-                dropdownList.Position = UDim2.new(0, 0, 0, -dropdownHeight - 4)
+                yPos = absPos.Y - dropdownHeight - 4
             else
-                dropdownList.Position = UDim2.new(0, 0, 1, 4)
+                yPos = absPos.Y + absSize.Y + 4
             end
+            dropdownList.Size = UDim2.new(0, math.floor(absSize.X), 0, dropdownHeight)
+            dropdownList.Position = UDim2.fromOffset(math.floor(absPos.X), math.floor(yPos))
             dropdownList.Visible = true
         else
             dropdownList.Visible = false
         end
-        dropdownList.ZIndex = 10
         for _, v in ipairs(dropdownScroll:GetChildren()) do
-            if v:IsA("TextButton") then v.ZIndex = 11 end
+            if v:IsA("TextButton") then v.ZIndex = 101 end
         end
         tween(arrow, {Rotation = open and 180 or 0})
     end)
@@ -760,7 +861,8 @@ function ModernUI:CreateDropdown(tab, text, options, default, callback)
     end)
 
     -- Close dropdown when clicking outside
-    UserInputService.InputBegan:Connect(function(input)
+    local outsideCon
+    outsideCon = UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and open then
             local pos = UserInputService:GetMouseLocation()
             local absPos = frame.AbsolutePosition
