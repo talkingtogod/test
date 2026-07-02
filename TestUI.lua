@@ -2,7 +2,7 @@
 -- Run this in Roblox Studio (LocalScript in StarterGui) or via executor.
 -- It creates a feature-rich demo window exercising every component.
 
-local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/anomalyco/opencode/main/ModernUI.lua"))()
+local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/talkingtogod/test/refs/heads/main/modern.lua"))()
 -- If you have the file locally in the game, use instead:
 -- local UI = require(script.Parent.ModernUI)
 
