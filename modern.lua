@@ -211,12 +211,13 @@ function ModernUI:CreateWindow(cfg)
     end)
 
     -- Resizing
-    local resizeHandle = Instance.new("Frame")
+    local resizeHandle = Instance.new("TextButton")
     resizeHandle.Size = UDim2.new(0, 16, 0, 16)
     resizeHandle.Position = UDim2.new(1, -16, 1, -16)
     resizeHandle.BackgroundColor3 = self.Theme.Accent
     resizeHandle.BorderSizePixel = 0
-    resizeHandle.Cursor = "SizeNWSE"
+    resizeHandle.Text = ""
+    resizeHandle.AutoButtonColor = false
     resizeHandle.Parent = main
     addCorner(resizeHandle, 4)
 
