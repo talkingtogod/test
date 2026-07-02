@@ -1,6 +1,5 @@
 -- TestUI.lua — Full test harness for ModernUI
 -- Run this in Roblox Studio (LocalScript in StarterGui) or via executor.
--- It creates a feature-rich demo window exercising every component.
 
 local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/talkingtogod/test/refs/heads/master/modern.lua"))()
 -- If you have the file locally in the game, use instead:
@@ -8,45 +7,42 @@ local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/talkingtog
 
 --------------------------------------------------------------------
 -- 1.  Create the main window
+--     NavPosition: "top" (text tabs) or "side" (icon tabs)
 --------------------------------------------------------------------
 local win = UI:CreateWindow({
     Title = "ModernUI Demo",
     Theme = "Dark",
     MinSize = Vector2.new(360, 300),
     ToggleKey = "RightShift",
+    NavPosition = "side",
 })
 
 --------------------------------------------------------------------
--- 2.  Tab — Controls
+-- 2.  Tab — Controls  (icon: puzzle)
 --------------------------------------------------------------------
-local tab1 = win:CreateTab("Controls")
+local tab1 = win:CreateTab("Controls", "🧩")
 
-win:CreateLabel(tab1, "INTERACTIVE", true)  -- section title
+win:CreateLabel(tab1, "INTERACTIVE", true)
 
--- Button
 local btnLog = ""
 win:CreateButton(tab1, "Log Message", function()
     btnLog = btnLog .. "\n> Button pressed at " .. os.date("%X")
 end)
 
--- Toggle
 local toggleState = false
 win:CreateToggle(tab1, "Enable Feature", false, function(state)
     toggleState = state
     print("[Toggle] Feature:", state)
 end)
 
--- TextInput
 win:CreateTextInput(tab1, "Enter your name...", "Player", function(text)
     print("[TextInput]", text)
 end)
 
--- SearchBar
 win:CreateSearchBar(tab1, "Search items...", function(query)
     print("[Search]", query)
 end)
 
--- Dropdown
 local dd = win:CreateDropdown(tab1, "Difficulty",
     {"Easy", "Normal", "Hard", "Nightmare", "Insane"},
     "Normal",
@@ -57,21 +53,19 @@ local dd = win:CreateDropdown(tab1, "Difficulty",
 
 win:CreateSeparator(tab1)
 
--- Slider
 win:CreateSlider(tab1, "Volume", 0, 100, 50, function(val)
     print("[Slider]", val)
 end)
 
--- Color Picker + live theme apply
 win:CreateColorPicker(tab1, "Accent Color", Color3.fromRGB(120, 80, 250), function(color)
     win:ApplyAccent(color)
     print("[ColorPicker]", color)
 end)
 
 --------------------------------------------------------------------
--- 3.  Tab — Docs / Readme
+-- 3.  Tab — Docs  (icon: book)
 --------------------------------------------------------------------
-local tab2 = win:CreateTab("Docs")
+local tab2 = win:CreateTab("Docs", "📖")
 
 win:CreateLabel(tab2, "MODERN UI — DOCS", true)
 win:CreateLabel(tab2, [[
@@ -81,9 +75,9 @@ Works on PC & mobile. Resizable. Custom accent.
 METHODS
 -------
 :CreateWindow(cfg)
-    cfg = { Title, Theme, MinSize, ToggleKey }
+    cfg = { Title, Theme, MinSize, ToggleKey, NavPosition }
 
-:CreateTab(name) → tabObj
+:CreateTab(name, icon) → tabObj
 
 :CreateButton(tab, text, callback) → btn
 :CreateToggle(tab, text, default, callback) → {Get,Set}
@@ -101,9 +95,9 @@ METHODS
 ]], false)
 
 --------------------------------------------------------------------
--- 4.  Tab — Log / Output viewer (live demo)
+-- 4.  Tab — Log / Output viewer  (icon: terminal)
 --------------------------------------------------------------------
-local tab3 = win:CreateTab("Output")
+local tab3 = win:CreateTab("Output", "⌨")
 
 win:CreateLabel(tab3, "LIVE LOG", true)
 
@@ -126,7 +120,6 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = logBox
 
--- Redirect prints to logBox (simple approach)
 local oldPrint = print
 print = function(...)
     local args = {...}
@@ -147,17 +140,13 @@ print = function(...)
 end
 
 --------------------------------------------------------------------
--- 5.  Tab — Theme switcher
+-- 5.  Tab — Theme  (icon: palette)
 --------------------------------------------------------------------
-local tab4 = win:CreateTab("Theme")
+local tab4 = win:CreateTab("Theme", "🎨")
 
 win:CreateLabel(tab4, "THEME PRESETS", true)
 
 win:CreateButton(tab4, "Dark Theme", function()
-    -- Reload with Dark theme
-    for key, val in pairs(UI:CreateWindow({Theme = "Dark"})) do
-        -- theme reload would need a full recreate; this sets colors manually
-    end
     print("Dark theme selected")
 end)
 
@@ -186,13 +175,13 @@ for _, p in ipairs(presetAccents) do
 end
 
 --------------------------------------------------------------------
--- 6.  Instructions overlay (first-time hint)
+-- 6.  Instructions
 --------------------------------------------------------------------
 spawn(function()
     task.wait(1)
     print("=== ModernUI Demo ===")
     print("Press RightShift to toggle the UI")
-    print("Browse tabs at the top")
+    print("Switch NavPosition between 'side' and 'top' in CreateWindow")
     print("Drag the window by its title bar")
     print("Resize from the bottom-right handle")
 end)
